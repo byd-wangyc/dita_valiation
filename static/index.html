@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DITA文件验证平台</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>DITA文件验证平台</h1>
+            <p class="subtitle">上传DITA文件夹，验证文件结构并生成验证报告</p>
+        </header>
+
+        <main>
+            <div class="upload-section">
+                <div class="upload-box" id="uploadBox">
+                    <div class="upload-icon">📁</div>
+                    <h2>上传DITA文件夹</h2>
+                    <p>请将DITA文件夹压缩为ZIP格式后上传</p>
+                    <p class="hint">文件夹应包含：infotree.xml文件和若干个.dita文件</p>
+                    <input type="file" id="fileInput" accept=".zip" style="display: none;">
+                    <button class="upload-btn" id="uploadBtn">选择文件</button>
+                    <div class="file-info" id="fileInfo" style="display: none;">
+                        <p>已选择文件: <span id="fileName"></span></p>
+                        <button class="remove-btn" id="removeBtn">移除</button>
+                    </div>
+                </div>
+
+                <div class="validation-section" id="validationSection" style="display: none;">
+                    <button class="validate-btn" id="validateBtn">开始验证</button>
+                    <div class="progress-container" id="progressContainer" style="display: none;">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <p class="progress-text" id="progressText">正在验证...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-section" id="resultSection" style="display: none;">
+                <h2>验证完成</h2>
+                <div class="result-message" id="resultMessage"></div>
+                <div class="download-buttons" id="downloadButtons"></div>
+            </div>
+
+            <div class="error-section" id="errorSection" style="display: none;">
+                <div class="error-message" id="errorMessage"></div>
+            </div>
+        </main>
+
+        <footer>
+            <p>DITA文件验证平台 © 2026</p>
+        </footer>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+
+</html>
