@@ -82,36 +82,63 @@ removeBtn.addEventListener('click', () => {
     validationSection.style.display = 'none';
     resultSection.style.display = 'none';
     errorSection.style.display = 'none';
+    progressContainer.style.display = 'none';
+    validateBtn.disabled = false;
+    validateBtn.style.display = 'inline-block';
 });
 
 // 上传文件到服务器
-async function uploadFile(file) {
-    try {
-        showProgress(10, '正在上传文件...');
-        
-        const formData = new FormData();
-        formData.append('file', file);
-        
-        const response = await fetch('/api/upload', {
-            method: 'POST',
-            body: formData
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok && data.success) {
+function uploadFile(file) {
+    validationSection.style.display = 'block';
+    validateBtn.style.display = 'none';
+    progressContainer.style.display = 'block';
+    showProgress(0, '正在上传文件...');
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/api/upload', true);
+
+    xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+            const percent = Math.round((event.loaded / event.total) * 100);
+            showProgress(percent, `正在上传文件... ${percent}%`);
+        } else {
+            showProgress(5, '正在上传文件...');
+        }
+    };
+
+    xhr.onload = () => {
+        let data = null;
+        try {
+            data = JSON.parse(xhr.responseText || '{}');
+        } catch (error) {
+            showError('上传失败：服务器返回无效响应');
+            resetUpload();
+            return;
+        }
+
+        if (xhr.status >= 200 && xhr.status < 300 && data.success) {
             tempId = data.temp_id;
-            showProgress(50, '文件上传成功，准备验证...');
-            validationSection.style.display = 'block';
+            showProgress(100, '文件上传成功，准备验证...');
             hideError();
+            setTimeout(() => {
+                progressContainer.style.display = 'none';
+                validateBtn.style.display = 'inline-block';
+            }, 300);
         } else {
             showError(data.error || '上传失败');
             resetUpload();
         }
-    } catch (error) {
-        showError('上传失败: ' + error.message);
+    };
+
+    xhr.onerror = () => {
+        showError('上传失败: 网络错误');
         resetUpload();
-    }
+    };
+
+    xhr.send(formData);
 }
 
 // 开始验证
@@ -123,6 +150,7 @@ validateBtn.addEventListener('click', async () => {
     
     try {
         validateBtn.disabled = true;
+        validateBtn.style.display = 'none';
         progressContainer.style.display = 'block';
         showProgress(30, '正在运行dita2json.py...');
         
@@ -147,10 +175,14 @@ validateBtn.addEventListener('click', async () => {
         } else {
             showError(data.error || '验证失败');
             validateBtn.disabled = false;
+            validateBtn.style.display = 'inline-block';
+            progressContainer.style.display = 'none';
         }
     } catch (error) {
         showError('验证过程出错: ' + error.message);
         validateBtn.disabled = false;
+        validateBtn.style.display = 'inline-block';
+        progressContainer.style.display = 'none';
     }
 });
 
@@ -185,8 +217,6 @@ function showResult(data) {
         btn2.download = 'excel2.xlsx';
         downloadButtons.appendChild(btn2);
     }
-    
-    validateBtn.disabled = false;
 }
 
 // 显示错误
@@ -210,5 +240,6 @@ function resetUpload() {
     uploadBtn.style.display = 'inline-block';
     validationSection.style.display = 'none';
     progressContainer.style.display = 'none';
+    validateBtn.disabled = false;
+    validateBtn.style.display = 'inline-block';
 }
-
