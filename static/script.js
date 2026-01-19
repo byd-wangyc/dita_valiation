@@ -102,8 +102,12 @@ function uploadFile(file) {
 
     xhr.upload.onprogress = (event) => {
         if (event.lengthComputable) {
-            const percent = Math.round((event.loaded / event.total) * 100);
-            showProgress(percent, `正在上传文件... ${percent}%`);
+            const rawPercent = Math.round((event.loaded / event.total) * 100);
+            const percent = Math.min(99, rawPercent);
+            const text = rawPercent >= 100
+                ? '上传完成，正在处理...'
+                : `正在上传文件... ${percent}%`;
+            showProgress(percent, text);
         } else {
             showProgress(5, '正在上传文件...');
         }
@@ -121,12 +125,9 @@ function uploadFile(file) {
 
         if (xhr.status >= 200 && xhr.status < 300 && data.success) {
             tempId = data.temp_id;
-            showProgress(100, '文件上传成功，准备验证...');
+            showProgress(100, '文件上传成功，可以开始验证');
             hideError();
-            setTimeout(() => {
-                progressContainer.style.display = 'none';
-                validateBtn.style.display = 'inline-block';
-            }, 300);
+            validateBtn.style.display = 'inline-block';
         } else {
             showError(data.error || '上传失败');
             resetUpload();
@@ -196,22 +197,25 @@ function showProgress(percent, text) {
 function showResult(data) {
     progressContainer.style.display = 'none';
     resultSection.style.display = 'block';
+    errorSection.style.display = 'none';
     resultMessage.textContent = data.message || '验证完成！';
     
     downloadButtons.innerHTML = '';
     
-    if (data.excel1) {
+    const excel1Url = data.excel1 || (tempId ? `/api/download/${tempId}/excel1.xlsx` : '');
+    if (excel1Url) {
         const btn1 = document.createElement('a');
-        btn1.href = data.excel1;
+        btn1.href = excel1Url;
         btn1.className = 'download-btn';
         btn1.textContent = '下载Excel文件1';
         btn1.download = 'excel1.xlsx';
         downloadButtons.appendChild(btn1);
     }
     
-    if (data.excel2) {
+    const excel2Url = data.excel2 || (tempId ? `/api/download/${tempId}/excel2.xlsx` : '');
+    if (excel2Url) {
         const btn2 = document.createElement('a');
-        btn2.href = data.excel2;
+        btn2.href = excel2Url;
         btn2.className = 'download-btn';
         btn2.textContent = '下载Excel文件2';
         btn2.download = 'excel2.xlsx';
